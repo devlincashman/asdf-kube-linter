@@ -5,6 +5,8 @@ set -euo pipefail
 GH_REPO="https://github.com/stackrox/kube-linter"
 TOOL_NAME="kube-linter"
 TOOL_TEST="kube-linter --help"
+LAST_TARGZ_RELEASE="0.5.0"
+LAST_BARE_VERSION="0.6.0"
 
 fail() {
   echo -e "asdf-$TOOL_NAME: $*"
@@ -32,11 +34,25 @@ list_all_versions() {
   list_github_tags
 }
 
-download_release() {
+has_targz() {
   local version="$1"
-  local filename="$2"
+  case "$(printf "%s\n" "$LAST_TARGZ_RELEASE" "$version" | sort -t. -k1,1 -k2,2 -k3,3 | head -1)" in
+    "$LAST_TARGZ_RELEASE") return 1 ;;
+    *) return 0 ;;
+  esac
+}
 
-  local uname_s os url
+has_bare_version() {
+  local version="$1"
+  case "$(printf "%s\n" "$LAST_BARE_VERSION" "$version" | sort -t. -k1,1 -k2,2 -k3,3 | head -1)" in
+    "$LAST_BARE_VERSION") return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+download_url() {
+  local version="$1"
+  local uname_s os url with_targz with_v
   uname_s="$(uname -s)"
 
   case "$uname_s" in
@@ -44,9 +60,27 @@ download_release() {
     Linux) os="linux" ;;
     *) fail "OS not supported: $uname_s" ;;
   esac
+  
+  if has_targz "$version"; then
+    with_targz=".tar.gz"
+  else
+    with_targz=""
+  fi
 
-  url="$GH_REPO/releases/download/${version}/kube-linter-${os}.tar.gz"
+  if has_bare_version "$version"; then
+    with_v="v"
+  else
+    with_v=""
+  fi
 
+  echo "$GH_REPO/releases/download/${with_v}${version}/kube-linter-${os}${with_targz}"
+}
+
+download_release() {
+  local version="$1"
+  local filename="$2"
+  local url
+  url="$(download_url "$version")"
   echo "* Downloading $TOOL_NAME release $version..."
   curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
 }
