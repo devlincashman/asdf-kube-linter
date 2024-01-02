@@ -37,16 +37,16 @@ list_all_versions() {
 has_targz() {
   local version="$1"
   case "$(printf "%s\n" "$LAST_TARGZ_RELEASE" "$version" | sort -t. -k1,1 -k2,2 -k3,3 | head -1)" in
-    "$LAST_TARGZ_RELEASE") return 1 ;;
-    *) return 0 ;;
+  "$LAST_TARGZ_RELEASE") return 1 ;;
+  *) return 0 ;;
   esac
 }
 
 has_bare_version() {
   local version="$1"
   case "$(printf "%s\n" "$LAST_BARE_VERSION" "$version" | sort -t. -k1,1 -k2,2 -k3,3 | head -1)" in
-    "$LAST_BARE_VERSION") return 0 ;;
-    *) return 1 ;;
+  "$LAST_BARE_VERSION") return 0 ;;
+  *) return 1 ;;
   esac
 }
 
@@ -56,11 +56,11 @@ download_url() {
   uname_s="$(uname -s)"
 
   case "$uname_s" in
-    Darwin) os="darwin" ;;
-    Linux) os="linux" ;;
-    *) fail "OS not supported: $uname_s" ;;
+  Darwin) os="darwin" ;;
+  Linux) os="linux" ;;
+  *) fail "OS not supported: $uname_s" ;;
   esac
-  
+
   if has_targz "$version"; then
     with_targz=".tar.gz"
   else
